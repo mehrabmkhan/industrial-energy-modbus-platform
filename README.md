@@ -14,7 +14,7 @@ MeterLink Industrial was built to show that full path.
 
 ## Live Demo
 
-Live demo: deployment pending.
+Live demo: <https://industrial-energy-modbus-platform.onrender.com>
 
 The public demo runs the same application pipeline as the local version: FastAPI starts an internal software Modbus TCP meter, the polling service reads holding registers, and the dashboard displays decoded measurements from SQLite history.
 

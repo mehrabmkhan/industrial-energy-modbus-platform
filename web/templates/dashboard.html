@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MeterLink Industrial</title>
+  <style>
+    :root { font-family: Arial, sans-serif; color: #e4e1d8; background: #111311; }
+    body { margin: 0; background: #111311; }
+    header { padding: 18px 24px; background: #0c0d0c; border-bottom: 1px solid #3f453d; display: flex; justify-content: space-between; align-items: center; }
+    h1, h2 { margin: 0 0 10px; }
+    nav { display: flex; flex-wrap: wrap; gap: 8px; }
+    nav a, .button { color: #e4e1d8; text-decoration: none; border: 1px solid #58614e; border-radius: 6px; padding: 8px 10px; background: #20251f; }
+    main { padding: 22px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+    .panel { background: #1a1d1a; border: 1px solid #3e463a; border-radius: 8px; padding: 16px; }
+    .metric { font-size: 30px; font-weight: 700; color: #ffffff; }
+    .label { color: #aab29d; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+    .online { color: #4fd37b; }
+    .degraded { color: #f2b84b; }
+    .offline, .critical { color: #ff6b6b; }
+    .warning { color: #f2b84b; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { border-bottom: 1px solid #3f453d; padding: 9px; text-align: left; vertical-align: top; }
+    th { color: #b8c2ae; }
+    .trend { width: 100%; height: 120px; background: #111311; border: 1px solid #3f453d; border-radius: 6px; }
+    input { background: #111311; color: #e4e1d8; border: 1px solid #58614e; padding: 7px; border-radius: 5px; width: 100%; box-sizing: border-box; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+    .trend-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+    .trend-card { border: 1px solid #3f453d; border-radius: 6px; padding: 10px; background: #151815; }
+    .window-links { display: flex; gap: 8px; margin-bottom: 12px; }
+    .window-links a.active { border-color: #4fd37b; color: #ffffff; }
+  </style>
+</head>
+<body>
+  {% macro line_chart(field, low, high, color) -%}
+  <svg class="trend" viewBox="0 0 600 120" preserveAspectRatio="none">
+    {% for row in readings %}
+      {% if loop.index0 > 0 %}
+      {% set prev = readings[loop.index0 - 1] %}
+      {% set prev_value = prev[field] or 0 %}
+      {% set row_value = row[field] or 0 %}
+      {% set prev_y = 110 - (((prev_value - low) / (high - low)) * 95) %}
+      {% set row_y = 110 - (((row_value - low) / (high - low)) * 95) %}
+      <line x1="{{ (loop.index0 - 1) * 600 / (readings|length if readings|length > 1 else 1) }}" y1="{{ 15 if prev_y < 15 else 110 if prev_y > 110 else prev_y }}" x2="{{ loop.index0 * 600 / (readings|length if readings|length > 1 else 1) }}" y2="{{ 15 if row_y < 15 else 110 if row_y > 110 else row_y }}" stroke="{{ color }}" stroke-width="2" />
+      {% endif %}
+    {% endfor %}
+  </svg>
+  {%- endmacro %}
+  <header>
+    <div>
+      <h1>MeterLink Industrial</h1>
+      <div class="label">Industrial Energy Meter Application & Modbus Integration Platform</div>
+    </div>
+    <nav>
+      <a href="#overview">Overview</a><a href="#live">Live Meter</a><a href="#trends">Trends</a><a href="#alarms">Alarms</a><a href="#config">Device Configuration</a><a href="#registers">Register Map</a><a href="#diagnostics">Diagnostics</a><a href="/docs">API</a>
+    </nav>
+  </header>
+  <main>
+    <section id="overview" class="grid">
+      <div class="panel"><div class="label">Device Status</div><div class="metric {{ status.connection_status|lower }}">{{ status.connection_status }}</div></div>
+      <div class="panel"><div class="label">Voltage</div><div class="metric">{{ "%.1f"|format(latest.voltage_avg or 0) }} V</div></div>
+      <div class="panel"><div class="label">Current</div><div class="metric">{{ "%.1f"|format(latest.current_avg or 0) }} A</div></div>
+      <div class="panel"><div class="label">Active Power</div><div class="metric">{{ "%.1f"|format(latest.active_power_kw or 0) }} kW</div></div>
+      <div class="panel"><div class="label">Power Factor</div><div class="metric">{{ "%.3f"|format(latest.power_factor_total or 0) }}</div></div>
+      <div class="panel"><div class="label">Frequency</div><div class="metric">{{ "%.2f"|format(latest.frequency or 0) }} Hz</div></div>
+      <div class="panel"><div class="label">Energy</div><div class="metric">{{ "%.1f"|format(latest.energy_import_kwh or 0) }} kWh</div></div>
+      <div class="panel"><div class="label">Alarm Status</div><div class="metric">{{ "ACTIVE" if alarms else "NORMAL" }}</div></div>
+    </section>
+
+    <section id="live" class="panel" style="margin-top: 18px;">
+      <h2>Live Meter</h2>
+      <div class="grid">
+        <div><div class="label">L1-N</div>{{ "%.2f"|format(latest.voltage_l1n or 0) }} V</div>
+        <div><div class="label">L2-N</div>{{ "%.2f"|format(latest.voltage_l2n or 0) }} V</div>
+        <div><div class="label">L3-N</div>{{ "%.2f"|format(latest.voltage_l3n or 0) }} V</div>
+        <div><div class="label">L1-L2</div>{{ "%.2f"|format(latest.voltage_l1l2 or 0) }} V</div>
+        <div><div class="label">A Current</div>{{ "%.2f"|format(latest.current_a or 0) }} A</div>
+        <div><div class="label">B Current</div>{{ "%.2f"|format(latest.current_b or 0) }} A</div>
+        <div><div class="label">C Current</div>{{ "%.2f"|format(latest.current_c or 0) }} A</div>
+        <div><div class="label">Neutral</div>{{ "%.2f"|format(latest.neutral_current or 0) }} A</div>
+        <div><div class="label">kvar</div>{{ "%.2f"|format(latest.reactive_power_kvar or 0) }}</div>
+        <div><div class="label">kVA</div>{{ "%.2f"|format(latest.apparent_power_kva or 0) }}</div>
+      </div>
+    </section>
+
+    <section id="trends" class="panel" style="margin-top: 18px;">
+      <h2>Trends</h2>
+      <div class="window-links">
+        <a class="button {{ 'active' if window == '5m' else '' }}" href="/?window=5m#trends">Last 5 minutes</a>
+        <a class="button {{ 'active' if window == '30m' else '' }}" href="/?window=30m#trends">Last 30 minutes</a>
+        <a class="button {{ 'active' if window == '1h' else '' }}" href="/?window=1h#trends">Last hour</a>
+      </div>
+      <div class="trend-grid">
+        <div class="trend-card"><div class="label">Voltage</div>{{ line_chart('voltage_avg', 570, 635, '#4fd37b') }}</div>
+        <div class="trend-card"><div class="label">Current</div>{{ line_chart('current_avg', 0, 950, '#72a7ff') }}</div>
+        <div class="trend-card"><div class="label">kW</div>{{ line_chart('active_power_kw', 0, 900, '#45d18e') }}</div>
+        <div class="trend-card"><div class="label">kvar</div>{{ line_chart('reactive_power_kvar', 0, 350, '#f2b84b') }}</div>
+        <div class="trend-card"><div class="label">kVA</div>{{ line_chart('apparent_power_kva', 0, 1000, '#d7cf7a') }}</div>
+        <div class="trend-card"><div class="label">Power Factor</div>{{ line_chart('power_factor_total', 0.82, 1.0, '#d986f3') }}</div>
+        <div class="trend-card"><div class="label">Frequency</div>{{ line_chart('frequency', 59.7, 60.3, '#69d2d0') }}</div>
+        <div class="trend-card"><div class="label">Energy</div>{{ line_chart('energy_import_kwh', (latest.energy_import_kwh or 12000) - 5, (latest.energy_import_kwh or 12000) + 5, '#ffffff') }}</div>
+      </div>
+      <div class="label">Trend data is read from SQLite history. CSV export: <a class="button" href="/export/readings.csv">Download readings</a></div>
+    </section>
+
+    <section id="alarms" class="panel" style="margin-top: 18px;">
+      <h2>Alarms</h2>
+      <table><thead><tr><th>Severity</th><th>Name</th><th>Measurement</th><th>Current</th><th>Threshold</th><th>Status</th></tr></thead><tbody>
+      {% for alarm in alarm_history %}
+        <tr><td class="{{ alarm.severity|lower }}">{{ alarm.severity }}</td><td>{{ alarm.name }}</td><td>{{ alarm.measurement }}</td><td>{{ alarm.current_value }}</td><td>{{ alarm.threshold }}</td><td>{{ alarm.status }}</td></tr>
+      {% else %}
+        <tr><td colspan="6">No alarms recorded.</td></tr>
+      {% endfor %}
+      </tbody></table>
+    </section>
+
+    <section id="config" class="panel" style="margin-top: 18px;">
+      <h2>Device Configuration</h2>
+      <form method="post" action="/configuration" class="form-grid">
+        {% set d = status.device %}
+        <label>Meter Name<input name="device_name" value="{{ d.device_name }}"></label>
+        <label>IP Address<input name="host" value="{{ d.host }}"></label>
+        <label>Port<input name="port" value="{{ d.port }}"></label>
+        <label>Unit ID<input name="unit_id" value="{{ d.unit_id }}"></label>
+        <label>Polling Interval<input name="poll_interval" value="{{ d.poll_interval }}"></label>
+        <label>Timeout<input name="timeout" value="{{ d.timeout }}"></label>
+        <label>Nominal Voltage<input name="nominal_voltage" value="{{ d.nominal_voltage }}"></label>
+        <label>CT Primary<input name="ct_primary_rating" value="{{ d.ct_primary_rating }}"></label>
+        <label>CT Secondary<input name="ct_secondary_rating" value="{{ d.ct_secondary_rating }}"></label>
+        <label>PT Ratio<input name="pt_ratio" value="{{ d.pt_ratio }}"></label>
+        <button class="button" type="submit">Validate Configuration</button>
+      </form>
+    </section>
+
+    <section id="registers" class="panel" style="margin-top: 18px;">
+      <h2>Register Map</h2>
+      <table><thead><tr><th>Address</th><th>Name</th><th>Type</th><th>Scale</th><th>Unit</th><th>Description</th></tr></thead><tbody>
+      {% for register in registers %}
+        <tr><td>{{ register.address }}</td><td>{{ register.name }}</td><td>{{ register.type }}</td><td>{{ register.scale }}</td><td>{{ register.unit }}</td><td>{{ register.description }}</td></tr>
+      {% endfor %}
+      </tbody></table>
+    </section>
+
+    <section id="diagnostics" class="panel" style="margin-top: 18px;">
+      <h2>Diagnostics</h2>
+      <table><tbody>
+        <tr><th>Device IP</th><td>{{ status.device.host }}</td><th>Port</th><td>{{ status.device.port }}</td></tr>
+        <tr><th>Unit ID</th><td>{{ status.device.unit_id }}</td><th>Connection</th><td>{{ status.connection_status }}</td></tr>
+        <tr><th>Success</th><td>{{ status.successful_polls }}</td><th>Failures</th><td>{{ status.failed_polls }}</td></tr>
+        <tr><th>Last Valid Poll</th><td>{{ status.last_successful_communication }}</td><th>Latency</th><td>{{ status.poll_latency_ms }} ms</td></tr>
+        <tr><th>Average Response</th><td>{{ status.average_response_time_ms }} ms</td><th>Last Exception</th><td>{{ status.last_exception }}</td></tr>
+        <tr><th>Decode Errors</th><td>{{ status.register_decode_errors }}</td><th>Application Version</th><td>{{ status.application_version }}</td></tr>
+      </tbody></table>
+    </section>
+  </main>
+</body>
+</html>

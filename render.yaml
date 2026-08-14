@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: industrial-energy-modbus-platform
+    runtime: docker
+    plan: free
+    autoDeploy: true
+    envVars:
+      - key: METERLINK_START_SIMULATOR
+        value: "true"
+      - key: METERLINK_DB
+        value: /app/data/meterlink.db

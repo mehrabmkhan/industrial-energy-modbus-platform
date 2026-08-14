@@ -1,0 +1,11 @@
+device_name: ML-600V-DEMO
+host: 127.0.0.1
+port: 15020
+unit_id: 1
+poll_interval: 1.0
+timeout: 1.5
+retries: 2
+nominal_voltage: 600
+ct_primary_rating: 1200
+ct_secondary_rating: 5
+pt_ratio: 1

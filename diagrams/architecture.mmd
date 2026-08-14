@@ -1,0 +1,9 @@
+flowchart LR
+    Simulator["Software Modbus TCP Meter\nPyModbus simulator"] -->|Holding registers| Client["Async Polling Client"]
+    Client --> Decoder["Register Map Decoder"]
+    Decoder --> Alarms["Alarm Engine"]
+    Decoder --> Store["SQLite Readings"]
+    Alarms --> Store
+    Store --> API["FastAPI API"]
+    API --> Dashboard["Operations Dashboard"]
+    API --> Export["CSV Export"]

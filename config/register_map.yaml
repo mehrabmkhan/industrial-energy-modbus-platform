@@ -1,0 +1,25 @@
+byte_order: big
+word_order: big
+base_table: holding_registers
+addressing: zero_based
+registers:
+  - {address: 0, name: voltage_l1n, type: float32, access: ro, scale: 1, unit: V, description: Phase L1 to neutral voltage}
+  - {address: 2, name: voltage_l2n, type: float32, access: ro, scale: 1, unit: V, description: Phase L2 to neutral voltage}
+  - {address: 4, name: voltage_l3n, type: float32, access: ro, scale: 1, unit: V, description: Phase L3 to neutral voltage}
+  - {address: 6, name: voltage_l1l2, type: float32, access: ro, scale: 1, unit: V, description: Line L1 to L2 voltage}
+  - {address: 8, name: voltage_l2l3, type: float32, access: ro, scale: 1, unit: V, description: Line L2 to L3 voltage}
+  - {address: 10, name: voltage_l3l1, type: float32, access: ro, scale: 1, unit: V, description: Line L3 to L1 voltage}
+  - {address: 12, name: voltage_avg, type: float32, access: ro, scale: 1, unit: V, description: Average line-to-line voltage}
+  - {address: 14, name: current_a, type: float32, access: ro, scale: 1, unit: A, description: Phase A current}
+  - {address: 16, name: current_b, type: float32, access: ro, scale: 1, unit: A, description: Phase B current}
+  - {address: 18, name: current_c, type: float32, access: ro, scale: 1, unit: A, description: Phase C current}
+  - {address: 20, name: neutral_current, type: float32, access: ro, scale: 1, unit: A, description: Calculated neutral imbalance current}
+  - {address: 22, name: current_avg, type: float32, access: ro, scale: 1, unit: A, description: Average phase current}
+  - {address: 24, name: frequency, type: float32, access: ro, scale: 1, unit: Hz, description: System frequency}
+  - {address: 26, name: active_power_kw, type: float32, access: ro, scale: 1, unit: kW, description: Total active power}
+  - {address: 28, name: reactive_power_kvar, type: float32, access: ro, scale: 1, unit: kvar, description: Total reactive power}
+  - {address: 30, name: apparent_power_kva, type: float32, access: ro, scale: 1, unit: kVA, description: Total apparent power}
+  - {address: 32, name: power_factor_total, type: float32, access: ro, scale: 1, unit: pf, description: Total power factor}
+  - {address: 34, name: energy_import_kwh, type: float32, access: ro, scale: 1, unit: kWh, description: Imported active energy counter}
+  - {address: 36, name: energy_reactive_kvarh, type: float32, access: ro, scale: 1, unit: kvarh, description: Reactive energy counter}
+  - {address: 38, name: status_word, type: uint16, access: ro, scale: 1, unit: bitfield, description: "Bit 0 online, bit 1 active alarm"}

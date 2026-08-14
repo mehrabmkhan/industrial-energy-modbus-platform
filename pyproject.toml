@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "meterlink-industrial"
+version = "1.0.0"
+description = "Industrial energy meter Modbus simulator and monitoring platform"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "jinja2>=3.1",
+  "python-multipart>=0.0.9",
+  "pydantic>=2.9",
+  "pymodbus==3.15.0",
+  "PyYAML>=6.0",
+  "pandas>=2.2",
+]
+
+[project.scripts]
+meterlink-simulator = "meterlink.simulator:main"
+meterlink-poll-once = "meterlink.cli:poll_once_main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

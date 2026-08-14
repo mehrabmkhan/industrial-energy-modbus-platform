@@ -1,0 +1,23 @@
+services:
+  meter-simulator:
+    build: .
+    command: ["python", "-m", "meterlink.simulator", "--host", "0.0.0.0", "--port", "15020"]
+    ports:
+      - "15020:15020"
+
+  energy-monitor:
+    build: .
+    environment:
+      METERLINK_START_SIMULATOR: "false"
+      METERLINK_MODBUS_HOST: "meter-simulator"
+      METERLINK_MODBUS_PORT: "15020"
+      METERLINK_DB: "/app/data/meterlink.db"
+    ports:
+      - "8000:8000"
+    volumes:
+      - meterlink-data:/app/data
+    depends_on:
+      - meter-simulator
+
+volumes:
+  meterlink-data:
